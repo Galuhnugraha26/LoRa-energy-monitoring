@@ -2,7 +2,9 @@
 
 **Originally developed in 2023 · Reconstructed and documented in 2026**
 
-**Status:** Source recovered from archived program listings · CSV protocol host tests passed · ESP32/PlatformIO builds and physical hardware verification pending.
+**Project Status:** Completed and successfully tested on physical hardware in 2023.
+
+**Development History:** Originally developed in 2023. Source code reconstructed and documented for GitHub publication in 2026.
 
 This repository documents a two-node energy-monitoring prototype built around **ESP32**, **two PZEM-004T v3 energy meters**, **LoRa**, **16×2 LCD**, and a **wired serial connection to Node-RED**. The original 2023 program listings survived in an archived project report, even though the original source folder, Git history, and Node-RED flow were lost.
 
@@ -102,4 +104,6 @@ Read [`docs/reconstruction-notes.md`](docs/reconstruction-notes.md) before claim
 - [LiquidCrystal_I2C / marcoschwartz](https://registry.platformio.org/libraries/marcoschwartz/LiquidCrystal_I2C) (older LCD library: test on your board)
 - [PlatformIO](https://platformio.org/)
 
-**Code and documentation status:** 2026 reconstructed reference, not production-ready and not yet physically validated. Licensing decision is pending the author's choice; no LICENSE is included. This repository does not automatically grant reuse rights.
+**Original Implementation:** Successfully developed and tested on physical hardware in 2023.
+
+**Repository Update:** Source code recovered and reconstructed from archived documentation in 2026. The reconstructed firmware has not yet been retested on the original hardware.
