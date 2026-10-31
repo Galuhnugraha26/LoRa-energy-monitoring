@@ -1,0 +1,308 @@
+#include <SPI.h> 
+#include <LoRa.h> 
+
+#include <LiquidCrystal_I2C.h> 
+LiquidCrystal_I2C lcd(0x27, 16, 2);//Initialization of 16X2 
+I2C LCD 
+
+//define the pins used by the LoRa transceiver module 
+#define SCK 18 
+#define MISO 19 
+#define MOSI 23 
+#define SS 5 
+#define RST 14 
+#define DIO0 2 
+
+//923E6 frequency allowed in Indonesia 
+#define BAND 923E6 
+
+// Replace with your network credentials 
+const char* ssid     = "[REDACTED]"; 
+const char* password = "[REDACTED]"; 
+
+// Initialize variables to get and save LoRa data 
+int rssi; 
+String loRaMessage = ""; 
+
+String voltageStr = ""; 
+String currentStr = ""; 
+String powerStr = ""; 
+String energyStr = ""; 
+String voltage2Str = ""; 
+String current2Str = ""; 
+String power2Str = ""; 
+String energy2Str = ""; 
+String total_power = ""; 
+String total_cost = ""; 
+String LoRaData = ""; 
+String data1, data2, data3, data4, data5, data6, data7, data8, 
+data9, data10, data11; 
+String rssi_string; 
+//Setpoint  
+const int LED = 27;       
+char incomingChar; 
+int setpoint = 0; 
+int incomingValue; 
+//Initialize WiFi 
+void connectWiFi(){ 
+// Connect to Wi-Fi network with SSID and password 
+Serial.print("Connecting to "); 
+Serial.println(ssid); 
+WiFi.begin(ssid, password); 
+while (WiFi.status() != WL_CONNECTED) { 
+delay(500); 
+Serial.print("."); 
+digitalWrite(LED_BUILTIN, HIGH); 
+//Print local IP address and start web server 
+Serial.println(""); 
+Serial.println("WiFi connected."); 
+Serial.println("IP address: "); 
+Serial.println(WiFi.localIP()); 
+} 
+//Initialize LCD 16X2 
+void startLCD(){ 
+lcd.begin(); 
+lcd.backlight(); 
+lcd.begin(); 
+lcd.setCursor(0,0); 
+lcd.print("LORA Receiver"); 
+delay (2000); 
+lcd.clear(); 
+} 
+//Initialize LoRa module 
+void startLoRA(){ 
+int counter; 
+//SPI LoRa pins 
+SPI.begin(SCK, MISO, MOSI, SS); 
+//setup LoRa transceiver module 
+LoRa.setPins(SS, RST, DIO0); 
+while (!LoRa.begin(BAND) && counter < 10) { // initiation of 
+lora module connected with frequency 923 
+Serial.print("."); 
+counter++; 
+delay(500); 
+} 
+if (counter == 10) { 
+// Increment readingID on every new reading 
+Serial.println("Starting LoRa failed!");  
+} 
+Serial.println("LoRa Initialization OK!"); 
+lcd.setCursor(0,0); 
+lcd.print("LoRa OK!"); 
+delay(2000); 
+lcd.clear(); 
+} 
+// Read LoRa packet and get the sensor readings 
+void getLoRaData() { 
+// Read packet 
+int packetSize = LoRa.parsePacket(); 
+if (packetSize) { 
+while (LoRa.available()) { 
+LoRaData = LoRa.readString(); 
+Serial.print("Lora packet received: "); 
+Serial.print(LoRaData); 
+Serial.print(","); 
+Serial.println(rssi); 
+} 
+// code to separate LoRa packages 
+if ( LoRaData.charAt(0)) { 
+int i = 0; 
+for (i; i < LoRaData.length(); i++) { 
+if (LoRaData.charAt(i)== ',') { 
+break; 
+} 
+else { 
+data1 += LoRaData.charAt(i); 
+} 
+} 
+int j = i + 1 ; 
+for (j; j < LoRaData.length(); j++) { 
+if (LoRaData.charAt(j) == ',') { 
+break; 
+} 
+else { 
+data2 += LoRaData.charAt(j); 
+} 
+} 
+int k = j + 1 ; 
+for (k; k < LoRaData.length(); k++) { 
+if (LoRaData.charAt(k) == ',') { 
+break; 
+} 
+else { 
+data3 += LoRaData.charAt(k); 
+} 
+} 
+int l = k + 1 ; 
+for (l; l < LoRaData.length(); l++) { 
+if (LoRaData.charAt(l) == ',') { 
+break; 
+} 
+else { 
+data4 += LoRaData.charAt(l); 
+} 
+} 
+int m = l + 1 ; 
+for (m; m < LoRaData.length(); m++) { 
+if (LoRaData.charAt(m) == ',') { 
+break; 
+} 
+else { 
+data5 += LoRaData.charAt(m); 
+} 
+} 
+int n = m + 1 ; 
+for (n; n < LoRaData.length(); n++) { 
+if (LoRaData.charAt(n) == ',') { 
+break; 
+} 
+else { 
+data6 += LoRaData.charAt(n); 
+} 
+} 
+int o = n + 1 ; 
+for (o; o < LoRaData.length(); o++) { 
+if (LoRaData.charAt(o) == ',') { 
+break; 
+} 
+else { 
+data7 += LoRaData.charAt(o); 
+} 
+} 
+int p = o + 1 ; 
+for (p; p < LoRaData.length(); p++) { 
+if (LoRaData.charAt(p) == ',') { 
+break; 
+} 
+else { 
+data8 += LoRaData.charAt(p); 
+} 
+} 
+int q = p + 1 ; 
+for (q; q < LoRaData.length(); q++) { 
+if (LoRaData.charAt(q) == ',') { 
+break; 
+} 
+else { 
+data9 += LoRaData.charAt(q); 
+} 
+} 
+int r = q + 1 ; 
+for (r; r < LoRaData.length(); r++) { 
+if (LoRaData.charAt(r) == ',') { 
+break; 
+} 
+else { 
+data10 += LoRaData.charAt(r); 
+} 
+} 
+int s = r + 1 ; 
+for (s; s < LoRaData.length(); s++) { 
+if (LoRaData.charAt(s) == ',') { 
+break; 
+
+
+          } 
+          else { 
+            data11 += LoRaData.charAt(s); 
+          } 
+        } 
+
+    // print RSSI of packet 
+     rssi = (LoRa.packetRssi()); 
+ Serial.print(" with RSSI "); 
+Serial.println(rssi); 
+lcd.setCursor(0,0); 
+lcd.print("With RSSI :"); 
+lcd.print (rssi); 
+delay (1000); 
+lcd.clear(); 
+
+     rssi_string = String (rssi); 
+
+      } 
+// display LoRa data values on the serial monitor 
+Serial.print("Reading ID: "); 
+ Serial.println(data1); 
+Serial.print("Voltage: "); 
+Serial.println(data2); 
+Serial.print("Current: "); 
+Serial.println(data3); 
+Serial.print("Power: "); 
+Serial.println(data4); 
+
+lcd.setCursor (0,0); //initiate a position to display data 
+lcd.print ("Daya:");// display LoRa data values on the LCD 
+lcd.print (data4);// display LoRa data values on the LCD 
+
+Serial.print("Energy: "); 
+Serial.println(data5); 
+Serial.println(); 
+Serial.print("Voltage2: "); 
+Serial.println(data6); 
+Serial.print("Current2: "); 
+Serial.println(data7); 
+Serial.print("Power2: "); 
+Serial.println(data8); 
+
+lcd.setCursor (0,1);//initiate a position to display data 
+lcd.print ("Daya2:");// display LoRa data values on the LCD 
+lcd.print (data8);// display LoRa data values on the LCD 
+
+Serial.print("Energy: "); 
+Serial.println(data9); 
+Serial.println(); 
+Serial.print("Total Pemakaian Daya: "); 
+Serial.println(data10); 
+Serial.print("Total Biaya: "); 
+Serial.println(data11); 
+Serial.println(); 
+if (Serial.available() > 0) { 
+incomingValue = Serial.parseInt();  // Read an integer 
+value from the Serial Monitor 
+if (incomingValue) { 
+digitalWrite(LED, HIGH);  // LED ON 
+} else  { 
+digitalWrite(LED, LOW);  // LED OFF 
+} 
+// Compares the value of data9 with incomingValue 
+if (data10.toInt() > incomingValue) { 
+digitalWrite(LED, HIGH);  // LED ON 
+} else if (data10.toInt () < incomingValue) { 
+digitalWrite(LED, LOW);  // LED OFF 
+} 
+} 
+// saves the LoRa data into the following variables 
+data1 = ""; 
+data2 = ""; 
+data3 = ""; 
+data4 = ""; 
+data5 = ""; 
+data6 = ""; 
+data7 = ""; 
+data8 = ""; 
+data9 = ""; 
+data10 = ""; 
+data11 = ""; 
+delay (1000); 
+}        
+} 
+void sendtoNodeRed() { 
+sendto = String (rssi) +  String (data1)  + String (data2) +  
+String (data3) + String (data4)  + String (data6) +  String 
+(data7) + String (data8) +  String (data10) + String (data11); 
+delay (300); 
+}  
+void setup() {  
+// Initialize Serial Monitor 
+Serial.begin(115200); 
+pinMode (LED, OUTPUT ); 
+// connectWiFi(); 
+startLCD(); 
+startLoRA();  
+} 
+void loop() { 
+// Check if there are LoRa packets available 
+getLoRaData(); 
+sendtoNodeRed(); 
+}

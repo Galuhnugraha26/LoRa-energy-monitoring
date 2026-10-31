@@ -1,0 +1,223 @@
+1. Node End Code (Transmitter) 
+#include <PZEM004Tv30.h> 
+#include <SPI.h> 
+#include <LoRa.h> 
+#include <LiquidCrystal_I2C.h> 
+LiquidCrystal_I2C lcd(0x27, 16, 2); //Initialization of 16X2 
+I2C LCD 
+// define PZEM as ESP32 hardware serial2 
+#if defined(ESP32) 
+PZEM004Tv30 pzem1(Serial2, 16, 17, 0x08); 
+PZEM004Tv30 pzem2(Serial2, 16, 17, 0x07); 
+#else 
+PZEM004Tv30 pzem1(Serial); 
+PZEM004Tv30 pzem2(Serial); 
+#endif 
+//define the pins used by the LoRa transceiver module 
+#define SCK 18 
+#define MISO 19 
+#define MOSI 23 
+#define SS 5 
+#define RST 14 
+#define DIO0 2 
+//923E6 frequency allowed in Indonesia 
+#define BAND 923E6 
+//packet counter 
+int readingID = 0; 
+int counter = 0; 
+String LoRaMessage = ""; 
+//energymeter1 
+float voltage = 0; 
+float current = 0; 
+float power = 0; 
+float energy = 0; 
+float cost = 0; 
+String voltageStr, currentStr, powerStr, energyStr, 
+frequencyStr, pfStr, costStr; 
+//energymeter2 
+float voltage2 = 0; 
+float current2 = 0; 
+float power2 = 0; 
+float energy2 = 0; 
+float cost2 = 0; 
+String voltage2Str, current2Str, power2Str, energy2Str, 
+frequency2Str, pf2Str, cost2Str; 
+String total_powerStr; 
+String total_costStr; 
+float hargaPerKWH = 1.352;  //price in rupiah 
+float total_cost; 
+float total_power; 
+//Initialize LCD display 
+void startLCD(){ 
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+lcd.begin(); 
+lcd.backlight(); 
+lcd.setCursor(0, 0); 
+lcd.print("Energy Meter"); 
+lcd.setCursor(0, 1); 
+lcd.print("With LoRa"); 
+delay(2000); 
+lcd.clear(); 
+} 
+//Initialize LoRa module 
+void startLoRA(){ 
+//SPI LoRa pins 
+SPI.begin(SCK, MISO, MOSI, SS); 
+//setup LoRa transceiver module 
+LoRa.setPins(SS, RST, DIO0); 
+while (!LoRa.begin(BAND) && counter < 10) { 
+Serial.print("."); 
+counter++; 
+delay(500); 
+} 
+if (counter == 10) { 
+// Increment readingID on every new reading 
+readingID++; 
+Serial.println("Starting LoRa failed!");  
+} 
+Serial.println("LoRa Initialization OK!"); 
+lcd.setCursor(0, 0); 
+lcd.clear(); 
+lcd.print("LoRa OK!"); 
+delay(2000); 
+} 
+void startPZEM(){ 
+#if defined(ESP32) 
+PZEM004Tv30 pzem1(Serial2, 16, 17, 0x08); // PZEM1 with 
+address number 8 
+PZEM004Tv30 pzem2(Serial2, 16, 17, 0x07); // PZEM1 with 
+address number 8 
+#else 
+PZEM004Tv30 pzem1(Serial); 
+PZEM004Tv30 pzem2(Serial); 
+#endif 
+Serial.println(pzem1.readAddress(0x08), HEX); 
+Serial.println(pzem2.readAddress(0x07), HEX); 
+} 
+void getReadings(){ 
+//energymeter1 
+float voltage = pzem1.voltage(); 
+float current = pzem1.current(); 
+float power = pzem1.power(); 
+float energy = pzem1.energy(); 
+float frequency = pzem1.frequency(); 
+float pf = pzem1.pf();  
+//energymeter2 
+float voltage2 = pzem2.voltage(); 
+float current2 = pzem2.current(); 
+float power2 = pzem2.power(); 
+float energy2 = pzem2.energy(); 
+float frequency2 = pzem2.frequency(); 
+float pf2 = pzem2.pf(); 
+//Serial print readingID 
+Serial.print("Sending packet: "); 
+Serial.println(readingID); 
+//reading sensor1 
+Serial.print("Voltage: ");       
+Serial.print(voltage);       
+Serial.println("V"); 
+Serial.print("Current: ");       
+Serial.print(current);       
+Serial.println("A"); 
+Serial.print("Power: ");         
+
+
+Serial.print(power);         
+Serial.println("W"); 
+
+  lcd.setCursor(0, 0); 
+  lcd.print("Daya1:"); 
+  lcd.print(power); 
+  lcd.print("W"); 
+
+Serial.print("Energy: ");  
+Serial.print(energy);  
+Serial.println("kWh"); 
+
+//reading sensor2 
+Serial.println(); 
+Serial.print("Voltage2: "); 
+Serial.print(voltage2);     
+Serial.println("V"); 
+Serial.print("Current2: ");  
+Serial.print(current2);    
+Serial.println("A"); 
+Serial.print("Power2: ");      
+Serial.print(power2);       
+Serial.println("W"); 
+
+  lcd.setCursor(0, 1); 
+  lcd.print("Daya2:"); 
+  lcd.print(power2); 
+  lcd.print("W"); 
+
+Serial.print("Energy2: ");       Serial.print(energy2);       
+Serial.println("kWh"); 
+
+  // total power calculation of energymeter1 and energymeter2 
+  float total_power = power + power2; 
+  Serial.println(); 
+  Serial.print("Pemakaian Daya: "); 
+  Serial.println(total_power);  
+  total_powerStr = String (total_power = power + power2); 
+
+  // convert float data type to string data type 
+  voltageStr = String (pzem1.voltage()); 
+  currentStr = String (pzem1.current()); 
+  powerStr = String (pzem1.power()); 
+  energyStr = String (pzem1.energy()); 
+  frequencyStr = String (pzem1.frequency()); 
+  pfStr = String (pzem1.pf()); 
+
+voltage2Str = String (pzem2.voltage()); 
+current2Str = String (pzem2.current()); 
+power2Str = String (pzem2.power()); 
+energy2Str = String (pzem2.energy()); 
+frequency2Str = String (pzem2.frequency()); 
+pf2Str = String (pzem2.pf()); 
+} 
+void getTOTAL(){ 
+// electricity cost estimation calculation (PLN adjustment 
+tariff Jan-Mar 2023) 
+float cost = pzem1.energy() * hargaPerKWH; // get the rupiah 
+value from energy1 
+float cost2 = pzem2.energy() * hargaPerKWH ; // get the rupiah 
+value from energy2 
+// Total sum of estimated costs from energymeter1 and 
+energymeter2 
+float total_cost = (cost + cost2) * 100; 
+Serial.print("Total Cost: ");   
+Serial.print(total_cost); 
+Serial.println("Rupiah"); 
+total_costStr = String (total_cost = (cost + cost2) * 100); 
+} 
+void sendReadings() { 
+LoRaMessage = String (readingID) + "," + voltageStr + "," +  
+currentStr + "," + powerStr + "," + energyStr + ","  
++ voltage2Str + "," +  current2Str + "," + power2Str + "," + 
+energy2Str + ","  
++ total_powerStr +  "," + total_costStr; 
+//Send LoRa packet to receiver 
+LoRa.beginPacket(); 
+LoRa.print(LoRaMessage); 
+LoRa.endPacket(); 
+readingID++; 
+} 
+void setup() { 
+//initialize Serial Monitor 
+Serial.begin(115200); 
+pzem1.resetEnergy(); 
+pzem2.resetEnergy(); 
+startLCD(); 
+
+
+  startPZEM(); 
+  startLoRA(); 
+} 
+void loop() { 
+  getReadings(); 
+  getTOTAL(); 
+  sendReadings(); 
+  delay(10000); 
+} 
+

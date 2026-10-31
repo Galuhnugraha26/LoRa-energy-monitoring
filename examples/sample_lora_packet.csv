@@ -1,0 +1,2 @@
+sequence,voltage1_v,current1_a,power1_w,energy1_kwh,voltage2_v,current2_a,power2_w,energy2_kwh,total_power_w,estimated_cost_idr
+7,220.40,1.25,275.50,1.50,219.80,0.75,165.00,1.00,440.50,3380.00

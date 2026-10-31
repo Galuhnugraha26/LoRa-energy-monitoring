@@ -1,0 +1,15 @@
+# PlatformIO build and editor-local state
+.pio/
+.vscode/.browse.c_cpp.db*
+.vscode/ipch/
+# Python tools
+__pycache__/
+*.pyc
+# Local secrets / credentials
+.env
+.env.*
+secrets.h
+credentials.h
+# OS
+.DS_Store
+Thumbs.db

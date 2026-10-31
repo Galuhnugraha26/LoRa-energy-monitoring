@@ -1,0 +1,71 @@
+[
+  {
+    "id": "tab_energy_demo",
+    "type": "tab",
+    "label": "LoRa Energy (2026 reconstructed demo)",
+    "disabled": false,
+    "info": "Synthetic example, not original 2023 flow"
+  },
+  {
+    "id": "inject_energy",
+    "type": "inject",
+    "z": "tab_energy_demo",
+    "name": "Synthetic sample DATA line",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "DATA:{\"sequence\":7,\"meter1\":{\"voltage_v\":220.40,\"current_a\":1.25,\"power_w\":275.50,\"energy_kwh\":1.50},\"meter2\":{\"voltage_v\":219.80,\"current_a\":0.75,\"power_w\":165.00,\"energy_kwh\":1.00},\"total_power_w\":440.50,\"estimated_cost_idr\":3380.00,\"rssi_dbm\":-77}",
+    "payloadType": "str",
+    "x": 180,
+    "y": 140,
+    "wires": [
+      [
+        "parse_energy"
+      ]
+    ]
+  },
+  {
+    "id": "parse_energy",
+    "type": "function",
+    "z": "tab_energy_demo",
+    "name": "Parse DATA lines",
+    "func": "const line = String(msg.payload ?? '').trim();\nif (!line.startsWith('DATA:')) return null;\ntry {\n  msg.payload = JSON.parse(line.slice(5));\n  return msg;\n} catch (err) {\n  node.warn('Invalid gateway JSON: ' + err.message);\n  return null;\n}\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 140,
+    "wires": [
+      [
+        "debug_energy"
+      ]
+    ]
+  },
+  {
+    "id": "debug_energy",
+    "type": "debug",
+    "z": "tab_energy_demo",
+    "name": "Parsed energy data",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 680,
+    "y": 140,
+    "wires": []
+  }
+]
